@@ -7,7 +7,6 @@ import java.util.Scanner;
 import pt.ulisboa.tecnico.learnjava.bank.exceptions.AccountException;
 import pt.ulisboa.tecnico.learnjava.bank.exceptions.BankException;
 import pt.ulisboa.tecnico.learnjava.bank.exceptions.ClientException;
-import pt.ulisboa.tecnico.learnjava.bank.services.Services;
 import pt.ulisboa.tecnico.learnjava.sibs.domain.transferOperationData;
 
 public class Interface {
@@ -39,7 +38,7 @@ public class Interface {
 				break;
 			case "mbway-transfer":
 				// mbway-transfer 987654321 987321654 50
-				transferOperationData data = new transferOperationData(new Services(), s.next(), s.next(), s.nextInt());
+				transferOperationData data = new transferOperationData(null, s.next(), s.next(), s.nextInt());
 				System.out.println(c.transfer(data));
 				break;
 			case "mbway-split-bill":

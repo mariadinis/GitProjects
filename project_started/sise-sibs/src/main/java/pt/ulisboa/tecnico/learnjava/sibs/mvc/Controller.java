@@ -6,9 +6,8 @@ import pt.ulisboa.tecnico.learnjava.bank.domain.Account;
 import pt.ulisboa.tecnico.learnjava.bank.domain.Client;
 import pt.ulisboa.tecnico.learnjava.bank.exceptions.AccountException;
 import pt.ulisboa.tecnico.learnjava.bank.services.Services;
-import pt.ulisboa.tecnico.learnjava.sibs.domain.Cancelled;
 import pt.ulisboa.tecnico.learnjava.sibs.domain.Completed;
-import pt.ulisboa.tecnico.learnjava.sibs.domain.Error;
+import pt.ulisboa.tecnico.learnjava.sibs.domain.FinalState;
 import pt.ulisboa.tecnico.learnjava.sibs.domain.Sibs;
 import pt.ulisboa.tecnico.learnjava.sibs.domain.TransferOperation;
 import pt.ulisboa.tecnico.learnjava.sibs.domain.transferOperationData;
@@ -17,8 +16,14 @@ import pt.ulisboa.tecnico.learnjava.sibs.exceptions.SibsException;
 
 public class Controller {
 
+	/*
+	 * services passa a ser atributo do controller para nao ser invocado na
+	 * interface, ou seja, a classe Interface passa a ser independente da classe
+	 * Services -> guideline 5: "Separate Concerns in Modules"
+	 */
+	private Services services = new Services();
+
 	public String associate(String iban, String phoneNumber) {
-		Services services = new Services();
 		Account account = services.getAccountByIban(iban);
 		Client client = account.getClient();
 
@@ -53,8 +58,8 @@ public class Controller {
 		String sourceIban = getIban(sourceAccount);
 		String targetIban = getIban(targetAccount);
 
-		Sibs sibs = new Sibs(10, phoneNumberData.getServices());
-		transferOperationData data = new transferOperationData(phoneNumberData.getServices(), sourceIban, targetIban,
+		Sibs sibs = new Sibs(10, this.services);
+		transferOperationData data = new transferOperationData(this.services, sourceIban, targetIban,
 				phoneNumberData.getAmount());
 		try {
 			/*
@@ -71,8 +76,7 @@ public class Controller {
 			throws SibsException, OperationException, AccountException {
 		TransferOperation op = (TransferOperation) sibs
 				.getOperation(sibs.transfer(data.getSourceIban(), data.getTargetIban(), data.getAmount()));
-		while (!(op.getState() instanceof Completed || op.getState() instanceof Error
-				|| op.getState() instanceof Cancelled)) {
+		while (!(op.getState() instanceof FinalState)) {
 			sibs.process();
 		}
 		if (op.getState() instanceof Completed) {
@@ -114,7 +118,7 @@ public class Controller {
 				return "This phone number " + friend + " does not have a MBway account.";
 			}
 
-			transferOperationData data = new transferOperationData(new Services(), friend, targetPhoneNumber,
+			transferOperationData data = new transferOperationData(this.services, friend, targetPhoneNumber,
 					friendsAmount.get(i));
 			String result = transfer(data);
 			if (!result.equals("Transfer successful!")) {
